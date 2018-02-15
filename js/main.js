@@ -1,28 +1,30 @@
-var xhttp = new XMLHttpRequest();
-xhttp.onreadystatechange = function(){
-  if(this.readyState == 4 && this.status == 200){
-    aggregateXML(xhttp.responseXML);
-  }
-};
-xhttp.open("GET", "testfiles/activity.gpx", true);
-xhttp.send();
+function myMap(){
+  $.ajax({
+    type: "GET",
+    url: "activity.xml",
+    dataType: "xml",
+    success: function(xmlData){
+      var pointsJ = $("trkpt", xmlData);
+      var points = [];
+      $.each(pointsJ, function(i, currItem){
+        lat = $(this).attr("lat");
+        lon = $(this).attr("lon");
+        point = new google.maps.LatLng(lat, lon);
+        points.push(point);
+      });
+      console.log(pointsJ.length);
 
-function aggregateXML(xml){
-  var points;
-  var pointstxt;
-  path="/gpx/trk/trkseg";
-  if(xml.evaluate){
-    var nodes = xml.evaluate(path, xml, null, XPathResult.ANY_TYPE, null);
-    var result = nodes.iterateNext();
-    while (result){
-      lat = result.childNodes[0].getAttributeNode("lat");
-      lng = result.childNodes[0].getAttributeNode("lng");
-      point = new google.maps.LatLng(lat, lng);
-      points.push(point);
-      pointstxt += lat + ", " + lng + "</br>";
-    }
-  }
-  document.getElementById("testoutput").innerHTML = pointstxt
+      var runPath = new google.maps.Polyline({
+        path: points,
+      });
 
+      var mapProp={
+        center:new google.maps.LatLng(55.667995, 12.580377),
+        zoom:10,
+      };
+      var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+      runPath.setMap(map);
 
+    }, error : function(){console.log("bleh");}
+  });
 }
